@@ -19,11 +19,15 @@ CREATE TABLE message (
     channel_id bigint not null,
     server_id bigint not null,
     data text not null,
-    deleted boolean not null default false
+    word_count int not null,
+    deleted boolean not null default false,
+    digested boolean not null default false
 );
+
 CREATE UNIQUE INDEX ON message (server_id, channel_id, id);
 CREATE UNIQUE INDEX ON message (id, channel_id, server_id);
 CREATE UNIQUE INDEX ON message (id, deleted);
+CREATE INDEX ON message (server_id, word_count, digested);
 
 CREATE TABLE markov_grouping (
     message_id bigint not null references message(id),
@@ -31,3 +35,7 @@ CREATE TABLE markov_grouping (
     original_text text not null
 );
 CREATE INDEX ON markov_grouping(message_id, digested_text) INCLUDE (original_text);
+
+CREATE TABLE loaded_channel (
+    channel_id bigint not null primary key
+);

@@ -1,16 +1,20 @@
 from database.markov import insert_markov_grouping
+from database.markov import mark_message_digested
 import re
 
-def process_message(cur, message_id, message):
-    triples = generate_triples(message.split(' '))
+def process_message(cur, message):
+    triples = generate_triples(message.content.split(' '))
 
+    message_marked_digested = False
     for triple in triples:
         digest = generate_digest(triple)
         if digest is None:
             continue
         original = generate_original(triple)
 
-        insert_markov_grouping(cur, message_id, digest, original)
+        insert_markov_grouping(cur, message.id, digest, original)
+        if not message_marked_digested:
+            mark_message_digested(cur, message.id)
 
 def generate_triples(words):
     if len(words) < 3:
@@ -21,14 +25,17 @@ def generate_triples(words):
         triples.append((words[i], words[i+1], words[i+2]))
     return triples
 
-def generate_digest(triple):
+def generate_digest(words):
     digests = []
-    for word in triple:
-        digest = re.sub('[\'\[\]@#$^&*\\\{\}`~<>+=\-_/|:]', '', word).lower()
+    for word in words:
+        digest = clean_word(word)
         if digest == '':
             return None
         digests.append(digest)
     return ':'.join(digests)
+
+def clean_word(word):
+    return re.sub('[\'\[\]@#$^&*\\\{\}`~<>+=\-_/|:]', '', word).lower()
 
 def generate_original(triple):
     return ' '.join(triple)
