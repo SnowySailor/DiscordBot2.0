@@ -3,14 +3,20 @@ from database.message import insert_message
 from markov.process import process_message, clean_word
 import discord
 
-async def load_server_messages(cur, server):
+async def load_server_messages(cur, client_user_id, server):
     message_count = 0
+
+    client = discord.utils.find(lambda m: m.id == client_user_id, server.members)
+    if client is None:
+        print("couldn't find client")
+        return
 
     cur.execute("BEGIN")
     for channel in filter(lambda c: c.type == discord.ChannelType.text, server.channels):
-        if channel_loaded(cur, channel.id):
-            pass
-        message_count += await load_channel(cur, channel, 5000)
+        if channel_loaded(cur, channel.id) or not channel.permissions_for(client).read_message_history:
+            continue
+
+        message_count += await load_channel(cur, channel, 6000)
         mark_channel_loaded(cur, channel.id)
     cur.execute("COMMIT")
     return message_count

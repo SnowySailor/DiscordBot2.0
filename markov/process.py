@@ -6,15 +6,18 @@ def process_message(cur, message):
     triples = generate_triples(message.content.split(' '))
 
     message_marked_digested = False
+    is_message_start = True
     for triple in triples:
         digest = generate_digest(triple)
         if digest is None:
             continue
         original = generate_original(triple)
 
-        insert_markov_grouping(cur, message.id, digest, original)
+        insert_markov_grouping(cur, message.id, digest, original, is_message_start)
         if not message_marked_digested:
             mark_message_digested(cur, message.id)
+            message_marked_digested = True
+            is_message_start = False
 
 def generate_triples(words):
     if len(words) < 3:
@@ -23,6 +26,15 @@ def generate_triples(words):
     triples = []
     for i in range(len(words) - 2):
         triples.append((words[i], words[i+1], words[i+2]))
+    return triples
+
+def generate_quadruples(words):
+    if len(words) < 4:
+        return []
+
+    triples = []
+    for i in range(len(words) - 3):
+        triples.append((words[i], words[i+1], words[i+2], words[i+3]))
     return triples
 
 def generate_digest(words):

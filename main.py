@@ -20,7 +20,7 @@ class MyClient(discord.Client):
 
         cur = self.database.cur()
         if message.content.lower().startswith("$load-markov"):
-            message_count = await load_server_messages(cur, message.guild)
+            message_count = await load_server_messages(cur, client.user.id, message.guild)
             await self.get_channel(message.channel.id).send(f"Loaded {message_count} messages")
         elif message.content.lower().startswith("bot be random"):
             markov_message = generator.generate_message(cur, message.guild.id)

@@ -32,9 +32,11 @@ CREATE INDEX ON message (server_id, word_count, digested);
 CREATE TABLE markov_grouping (
     message_id bigint not null references message(id),
     digested_text text not null,
-    original_text text not null
+    original_text text not null,
+    is_message_start boolean not null
 );
 CREATE INDEX ON markov_grouping(message_id, digested_text) INCLUDE (original_text);
+CREATE INDEX ON markov_grouping(is_message_start);
 
 CREATE TABLE loaded_channel (
     channel_id bigint not null primary key
